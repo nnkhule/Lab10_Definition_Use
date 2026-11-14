@@ -45,7 +45,7 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 ### B4. Эхний шат — all-defs
 
-`BonusTest.allDefsResetAndNoBonus` болон `BonusTest.allDefsPresentAndStreakBonus` хоёр тест бүх definition-ийг дор хаяж нэг хэрэглээнд хүргэнэ. Хоёр тестээс цөөн байж болохгүй: 49-р мөрийн `score = 0` тодорхойлолт хэрэглэгдэхийн тулд 50-р мөрийн нөхцөл худал байх ёстой; 51-р мөрийн `score = 5` тодорхойлолтыг үүсгэхийн тулд мөн нөхцөл үнэн байх ёстой. Нэг гүйцэтгэлд энэ нөхцөл хоёр өөр утгатай байх боломжгүй. Эхний тест 46-р мөрийн `streak = 0` тодорхойлолтыг дараагийн эерэг ирцийн мөчлөгийн 41-р мөрийн c-use-д хүргэнэ. Хоёр дахь тест 43-р мөрийн `best` тодорхойлолт, 54-р мөрийн `score` тодорхойлолтуудыг use-д хүргэнэ.
+`BonusTest.resetNoBonus` болон `BonusTest.presentStreakBonus` хоёр тест бүх definition-ийг дор хаяж нэг хэрэглээнд хүргэнэ. Хоёр тестээс цөөн байж болохгүй: 49-р мөрийн `score = 0` тодорхойлолт хэрэглэгдэхийн тулд 50-р мөрийн нөхцөл худал байх ёстой; 51-р мөрийн `score = 5` тодорхойлолтыг үүсгэхийн тулд мөн нөхцөл үнэн байх ёстой. Нэг гүйцэтгэлд энэ нөхцөл хоёр өөр утгатай байх боломжгүй. Эхний тест 46-р мөрийн `streak = 0` тодорхойлолтыг дараагийн эерэг ирцийн мөчлөгийн 41-р мөрийн c-use-д хүргэнэ. Хоёр дахь тест 43-р мөрийн `best` тодорхойлолт, 54-р мөрийн `score` тодорхойлолтуудыг use-д хүргэнэ.
 
 `results/mvn-verify-alldefs.txt`-д нийт 5 тест амжилттай (GCD 3, bonus all-defs 2) гарсан. `results/jacoco-alldefs.csv` дахь `DataFlowTargets` мөр: Branch 14/16, Line 23/25 (7-р мөрийн далд constructor болон 33-р мөрийн exception statement хамрагдаагүй). Иймд all-defs хангагдсан ч branch 100% биш байж болно.
 
@@ -69,62 +69,92 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 | `a` | 38 (for-each-ийн оноолт) | 39 p-use (`a > 0`) |
 | `score` | 49, 51, 54 | 54 c-use (өөрийн баруун тал); 56 c-use |
 
+Definition дахин оноогдоход хуучин утга kill болно:
+
+| Хувьсагчийн def | Kill хийх дараагийн def | Тайлбар |
+|---|---|---|
+| `attendance` 31 | байхгүй | Параметрийн local def дахин оноогдохгүй. |
+| `threshold` 31 | байхгүй | Параметрийн local def дахин оноогдохгүй. |
+| `present` 35 | 40 | Эхний эерэг өдөр өмнөх утгыг дарна. |
+| `present` 40 | дараагийн 40 | Дараагийн эерэг өдөр өмнөх def-ийг дарна. |
+| `streak` 36 | 41 эсвэл 46 | 41 нэмэгдүүлнэ; 46 тасалсан өдөр тэглэнэ. 46 нь эхний 36-р мөрийн def-ийг ч kill хийнэ. |
+| `streak` 41 | дараагийн 41 эсвэл 46 | Дараагийн эерэг өдрийн increment эсвэл тасалсан өдрийн reset хуучин def-ийг дарна. |
+| `streak` 46 | дараагийн 41 эсвэл 46 | Дараагийн эерэг өдрийн increment эсвэл дахин reset хуучин def-ийг дарна. |
+| `best` 37, 43 | 43 | `streak > best` үнэн үед шинэ best хуучин def-ийг дарна. |
+| `a` 38 | дараагийн 38 | For-each дараагийн элементийг онооно. |
+| `score` 49 | 51 эсвэл 54 | 51-ийн assignment kill хийнэ; 54-ийн RHS эхлээд хуучин утгыг use хийгээд дараа нь def үүсгэнэ. |
+| `score` 51 | 54 | 54-ийн RHS 51-ийн утгыг use хийгээд дараа нь шинэ def үүсгэнэ. |
+| `score` 54 | байхгүй | Нэмэгдүүлэлтээс хойш буцах def байхгүй. |
+
 ### B3. Def-clear DU хосууд
 
 Замын тэмдэглэгээнд зөвхөн DU-д хамаарах мөрүүдийг харуулав; `38-T` нь дараагийн ирцийн элемент байгаа, `38-F` нь давталт дууссаныг илтгэнэ. Мөр 32-ын `attendance` болон `threshold` p-use нь short-circuit нөхцөл тул тусдаа хувьсагчийн шалгалтыг ялгаж тэмдэглэв.
 
 | Хувьсагч | Def | Use | Төрөл/салаа | Def-clear зам | Тестийн ID |
 |---|---:|---:|---|---|---|
-| attendance | 31 | 32 | p-use, null=T | `31 → 32-T` | `duNullAttendance` |
-| attendance | 31 | 32 | p-use, null=F | `31 → 32-F` | `allDefsResetAndNoBonus` |
-| attendance | 31 | 38 | p-use, T | `31 → 32-F → 35 → 38-T` | `allDefsResetAndNoBonus` |
-| attendance | 31 | 38 | p-use, F | `31 → 32-F → 35 → 38-F` | `duEmptyArrayThresholdZero` |
-| threshold | 31 | 32 | p-use, `<0`=T | `31 → 32` (attendance null биш) | `duNegativeThreshold` |
-| threshold | 31 | 32 | p-use, `<0`=F | `31 → 32-F` | `allDefsResetAndNoBonus` |
-| threshold | 31 | 50 | p-use, T | `31 → 32-F → 35 → 38 → 49 → 50-T` | `duEmptyArrayThresholdZero`, `duResetThenFiveAndThresholdMet` |
-| threshold | 31 | 50 | p-use, F | `31 → 32-F → 35 → 38 → 49 → 50-F` | `allDefsResetAndNoBonus`, `duShortResetAndUnderThreshold` |
-| present | 35 | 40 | c-use | `35 → 38-T → 39-T → 40` | `allDefsResetAndNoBonus` |
-| present | 35 | 50 | p-use, T | `35 → 38-F → 49 → 50-T` | `duEmptyArrayThresholdZero` |
-| present | 35 | 50 | p-use, F | `35 → 38-F → 49 → 50-F` | `allDefsResetAndNoBonus` |
-| present | 40 | 40 | c-use | `40 → 38-T → 39-T → 40` | `allDefsPresentAndStreakBonus` |
-| present | 40 | 50 | p-use, T | `40 → 38-F → 49 → 50-T` | `duResetThenFiveAndThresholdMet` |
-| present | 40 | 50 | p-use, F | `40 → 38-F → 49 → 50-F` | `duShortResetAndUnderThreshold` |
-| streak | 36 | 41 | c-use | `36 → 38-T → 39-T → 41` | `allDefsPresentAndStreakBonus` |
-| streak | 41 | 41 | c-use | `41 → 42 → 38-T → 39-T → 41` | `allDefsPresentAndStreakBonus` |
-| streak | 41 | 42 | p-use, T | `41 → 42-T` | `allDefsPresentAndStreakBonus` |
-| streak | 41 | 42 | p-use, F | `41 → 42-F` (шинэ streak өмнөх best-ээс их биш) | `allDefsResetAndNoBonus` |
-| streak | 46 | 41 | c-use | `46 → 38-T → 39-T → 41` | `duShortResetAndUnderThreshold` |
-| best | 37 | 42 | p-use, T | `37 → 38-T → 39-T → 41 → 42-T` | `allDefsPresentAndStreakBonus` |
-| best | 37 | 53 | p-use, F | `37 → 38-F → 49 → 50 → 53-F` | `duEmptyArrayThresholdZero` |
-| best | 43 | 42 | p-use, T | `43 → 38-T → 39-T → 41 → 42-T` | `duResetThenFiveAndThresholdMet` |
-| best | 43 | 42 | p-use, F | `43 → 38-T → 39-T → 41 → 42-F` | `duResetThenFiveAndThresholdMet` |
-| best | 43 | 53 | p-use, T | `43 → 38-F → 49 → 50 → 53-T` | `duResetThenFiveAndThresholdMet` |
-| best | 43 | 53 | p-use, F | `43 → 38-F → 49 → 50 → 53-F` | `allDefsResetAndNoBonus` |
-| a | 38 | 39 | p-use, T | `38-T → 39-T` | `allDefsPresentAndStreakBonus` |
-| a | 38 | 39 | p-use, F | `38-T → 39-F` | `duShortResetAndUnderThreshold` |
-| score | 49 | 54 | c-use | `49 → 50-F → 53-T → 54` | `duLongStreakUnderThreshold` |
-| score | 49 | 56 | c-use | `49 → 50-F → 53-F → 56` | `allDefsResetAndNoBonus` |
-| score | 51 | 54 | c-use | `51 → 53-T → 54` | `allDefsPresentAndStreakBonus` |
-| score | 51 | 56 | c-use | `51 → 53-F → 56` | `duEmptyArrayThresholdZero` |
-| score | 54 | 56 | c-use | `54 → 56` | `allDefsPresentAndStreakBonus` |
+| attendance | 31 | 32 | p-use, null=T | `31 → 32-T` | `nullAttendance` |
+| attendance | 31 | 32 | p-use, null=F | `31 → 32-F` | `resetNoBonus` |
+| attendance | 31 | 38 | p-use, T | `31 → 32-F → 35 → 38-T` | `resetNoBonus` |
+| attendance | 31 | 38 | p-use, F | `31 → 32-F → 35 → 38-F` | `emptyArrayZeroThreshold` |
+| threshold | 31 | 32 | p-use, `<0`=T | `31 → 32` (attendance null биш) | `negativeThreshold` |
+| threshold | 31 | 32 | p-use, `<0`=F | `31 → 32-F` | `resetNoBonus` |
+| threshold | 31 | 50 | p-use, T | `31 → 32-F → 35 → 38 → 49 → 50-T` | `emptyArrayZeroThreshold`, `resetThenFive` |
+| threshold | 31 | 50 | p-use, F | `31 → 32-F → 35 → 38 → 49 → 50-F` | `resetNoBonus`, `shortResetUnderThreshold` |
+| present | 35 | 40 | c-use | `35 → 38-T → 39-T → 40` | `resetNoBonus` |
+| present | 35 | 50 | p-use, T | `35 → 38-F → 49 → 50-T` | `emptyArrayZeroThreshold` |
+| present | 35 | 50 | p-use, F | `35 → 38-F → 49 → 50-F` | `resetNoBonus` |
+| present | 40 | 40 | c-use | `40 → 38-T → 39-T → 40` | `presentStreakBonus` |
+| present | 40 | 50 | p-use, T | `40 → 38-F → 49 → 50-T` | `resetThenFive` |
+| present | 40 | 50 | p-use, F | `40 → 38-F → 49 → 50-F` | `shortResetUnderThreshold` |
+| streak | 36 | 41 | c-use | `36 → 38-T → 39-T → 41` | `presentStreakBonus` |
+| streak | 41 | 41 | c-use | `41 → 42 → 38-T → 39-T → 41` | `presentStreakBonus` |
+| streak | 41 | 42 | p-use, T | `41 → 42-T` | `presentStreakBonus` |
+| streak | 41 | 42 | p-use, F | `41 → 42-F` (шинэ streak өмнөх best-ээс их биш) | `resetNoBonus` |
+| streak | 46 | 41 | c-use | `46 → 38-T → 39-T → 41` | `shortResetUnderThreshold` |
+| best | 37 | 42 | p-use, T | `37 → 38-T → 39-T → 41 → 42-T` | `presentStreakBonus` |
+| best | 37 | 53 | p-use, F | `37 → 38-F → 49 → 50 → 53-F` | `emptyArrayZeroThreshold` |
+| best | 43 | 42 | p-use, T | `43 → 38-T → 39-T → 41 → 42-T` | `resetThenFive` |
+| best | 43 | 42 | p-use, F | `43 → 38-T → 39-T → 41 → 42-F` | `resetThenFive` |
+| best | 43 | 53 | p-use, T | `43 → 38-F → 49 → 50 → 53-T` | `resetThenFive` |
+| best | 43 | 53 | p-use, F | `43 → 38-F → 49 → 50 → 53-F` | `resetNoBonus` |
+| a | 38 | 39 | p-use, T | `38-T → 39-T` | `presentStreakBonus` |
+| a | 38 | 39 | p-use, F | `38-T → 39-F` | `shortResetUnderThreshold` |
+| score | 49 | 54 | c-use | `49 → 50-F → 53-T → 54` | `longStreakUnderThreshold` |
+| score | 49 | 56 | c-use | `49 → 50-F → 53-F → 56` | `resetNoBonus` |
+| score | 51 | 54 | c-use | `51 → 53-T → 54` | `presentStreakBonus` |
+| score | 51 | 56 | c-use | `51 → 53-F → 56` | `emptyArrayZeroThreshold` |
+| score | 54 | 56 | c-use | `54 → 56` | `presentStreakBonus` |
 
-46-р мөрийн `streak = 0` нь өмнөх 41-р мөрийн `streak` тодорхойлолтыг kill хийнэ. 41-р мөрийн дараагийн тодорхойлолт мөн өмнөх `streak`-ийг kill хийнэ; 46-р мөрийн дараа дараагийн эерэг өдөр ирвэл 41-р мөрийн баруун талын c-use-д хүрэхээс өмнө өөрчлөгдөхгүй. 40-р мөрийн дараагийн `present = present + 1` өмнөх `present`-ийг, 43-р мөрийн `best = streak` өмнөх `best`-ийг, 51 ба 54-р мөрүүд өмнөх `score`-ийг kill хийнэ.
+Kill хүснэгтэд 46-р мөрийн reset нь эхний 36-р мөрийн `streak` def болон өмнөх 41-р мөрийн def-ийг дарж болохыг тэмдэглэв. 46-аас хойш эерэг өдөр ирвэл 41-р мөр эхлээд reset утгыг RHS-ийн c-use-д уншаад шинэ def үүсгэнэ. 46-р мөрөөс 42-р мөр хүртэл def-clear зам байхгүй: 42 хүрэх эерэг өдөр гарахад 41-р мөр түрүүлж `streak`-ийг дахин тодорхойлно.
 
-Биелэшгүй хосууд: 37-р мөрийн `best=0`-оос 42-р мөрийн худал салаа руу def-clear зам байхгүй, учир нь эхний эерэг өдөр `streak`-ийг 1 болгоод 42-р мөр үнэн болж 43-р мөрөөр `best`-ийг шинэчилнэ. Мөн 37-р мөрийн `best`-ээс 53-р мөрийн үнэн салаа хүрэх боломжгүй: эерэг өдөр байвал 43-р мөрд kill хийгдэнэ, эерэг өдөр огт байхгүй бол best=0 хэвээр үлдэж салаа худал байна. 46-р мөрийн `streak=0`-оос 42-р мөрийн аль ч салаанд хүрэх def-clear зам байхгүй: 42-р мөр хүрэхийн тулд эерэг өдөр хэрэгтэй бөгөөд тэр үед 41-р мөр түрүүлж streak-ийг дахин тодорхойлно. 46-р мөрийн def-ээс 41-р мөрийн c-use хүртэлх хос харин биелэх боломжтой.
+Def-clear замгүй тул DU гэж тооцохгүй хосууд: 36-р мөрийн `streak=0`-оос 42-T/F, 46-р мөрийн `streak=0`-оос 42-T/F хосуудад ямар ч зам байхгүй; 42-р мөр хүрэх эерэг өдрөөс өмнө 41-р мөр `streak`-ийг дахин тодорхойлно. 37-р мөрийн `best=0`-оос 42-F ч биелэхгүй: эхний эерэг өдөр `streak=1` тул 42 үнэн болж 43-р мөр `best`-ийг шинэчилдэг. 37-р мөрийн def-ээс 53-T хүрэх зам мөн үгүй: эерэг өдөр байвал 43-р мөрөөр kill хийгдэнэ, эерэг өдөр байхгүй бол best=0 хэвээр тул 53-F болно. 49-р мөрийн `score=0`-оос 56-р мөр хүртэл 50-T салаагаар явахад 51-р мөр kill хийнэ; 51-р мөрийн def-ээс 56 хүртэл 53-T салаагаар явахад 54-р мөр c-use хийсний дараа kill хийнэ. Тэдгээр def-clear хослол биш боловч тус бүр өөр салаанд def-clear DU хостой. Харин 46-р мөрийн def-ээс 41-р мөрийн c-use хүртэлх хос биелэх боломжтой.
 
 ## C. Fault seeding
 
 | № | Мутаци | Үр дүн | Унасан тест / гаралтын мөр |
 |---|---|---|---|
-| M1 | 41-р мөрийн `streak = streak + 1`-ийг устгав (missing update) | 12 тестээс 3 унасан | `allDefsPresentAndStreakBonus`: expected `<8>` but was `<5>`; `duLongStreakUnderThreshold`: expected `<3>` but was `<0>`; `duResetThenFiveAndThresholdMet`: expected `<8>` but was `<5>` (`results/mvn-test-M1.txt`) |
-| M2 | 43-р мөрийн `best = streak`-ийг `best = present` болгосон (wrong variable) | Эхний all-DU-pairs 11 тест амжилттай, M2 амьд үлдсэн (`results/mvn-test-M2.txt`) | Дараа нь `m2KillPresentIsNotBest` тест нэмэв. `attendance=[1,1,0,1,1,1]`, `threshold=5` үед зөв `best=3`, оноо 5; мутацитай код `present=5`-ыг best гэж буруу авч оноо 8 болгоно. Ингэснээр уг тест expected `<5>` but was `<8>` гэж унаж, зөвхөн нийт хос бүрийн оршин байгааг шалгах нь алдаатай хувьсагчийн утгыг заавал ялгахгүйг харуулав (`results/mvn-test-M2-kill.txt`). |
-| M3 | Давталтын дараа ашиглагддаггүй `int total = present + best;` нэмсэн (dead definition) | 12 тест амжилттай, тест илрүүлээгүй (`results/mvn-test-M3.txt`) | `javac` ашиглагдаагүй local variable-д анхааруулга гаргасангүй. Eclipse JDT-д суурилсан IDE-ийн unused-local diagnostic-ийн текст: `The value of the local variable total is not used`. Энэ төрлийн анхааруулгыг VS Code Java language server-ийн статик анализ гаргах ёстой; энэ нь runtime тестийн зорилго биш. |
+| M1 | 41-р мөрийн `streak = streak + 1`-ийг устгав (missing update) | 11 тестээс 3 унасан | `presentStreakBonus`: expected `<8>` but was `<5>`; `longStreakUnderThreshold`: expected `<3>` but was `<0>`; `resetThenFive`: expected `<8>` but was `<5>` (`results/mvn-test-M1.txt`) |
+| M2 | 43-р мөрийн `best = streak`-ийг `best = present` болгосон (wrong variable) | Эхний all-DU-pairs-ийн 11 тест амжилттай, мутаци амьд үлдсэн (`results/mvn-test-M2.txt`) | Дараах тоон харьцуулалтаар шалтгааныг тайлбарлав. |
+| M3 | Давталтын дараа ашиглагддаггүй `int total = present + best;` нэмсэн (dead definition) | 12 тест амжилттай, runtime тест илрүүлээгүй (`results/mvn-test-M3.txt`) | VS Code-д суулгасан Red Hat Java extension-ийн JDT compiler-аар M3 хувилбарт `-warn:+unusedLocal` шалгалт хийхэд бодит гаралт `The value of the local variable total is not used` гарсан. Бүтэн гаралт `results/m3-ide-warning.txt`-д байна. `javac` энэ анхааруулгыг гаргаагүй. |
+
+M2 анхны 11 тестийг яагаад давсныг `best` шинэчлэгдэх мөчийн утгуудаар харьцуулав:
+
+| Анхны тест | Шинэ def үүсэх үеийн `(present, streak, өмнөх best)` | Зөв/мутацитай эцсийн үр дүн |
+|---|---|---|
+| `resetNoBonus` | Эхэндээ `(1,1,0)`; reset-ийн дараа `(2,1,1)` нь `streak > best` нөхцөлд хүрэхгүй | `best=1` аль алинд; оноо 0 |
+| `presentStreakBonus` | Залгаа өдрүүдэд `present == streak`, утгууд 1–5 | `best=5` аль алинд; оноо 8 |
+| `shortResetUnderThreshold` | Reset-ийн дараа `(3,1,2)`, шинэчлэлт болохгүй | `best=2` аль алинд; оноо 0 |
+| `resetThenFive` | Reset-ийн дараа `(5,3,2)` үед мутаци `best=5` болгоно | Дараагийн өдрүүдэд зөв streak 5 хүрдэг тул эцсийн best 5 болж таарна; оноо 8 аль алинд |
+| `longStreakUnderThreshold` | Залгаа таван өдөр `present == streak` | `best=5` аль алинд; оноо 3 |
+| `emptyArrayZeroThreshold`, `nullAttendance`, `negativeThreshold` | best update үүсэхгүй; сүүлийн хоёр нь exception-оор дуусна | Үр дүн ижил |
+
+`m2KillCase` нь `[1,1,0,1,1,1]`, `threshold=5` өгнө. Сүүлийн өдөр `(present, streak, өмнөх best)=(5,3,2)`, тэгэхээр зөв код best-ийг 3 болгоно, мутаци 5 болгоно. Threshold-ын оноо 5 боловч зөв streak бонус авахгүй тул гаралт 5; мутацитай код буруу бонус нэмээд 8 буцаана. Тест expected `<5>` but was `<8>` гэж унасан (`results/mvn-test-M2-kill.txt`). Maven-ийн `Finished at` мөрүүдээр файлууд M1 23:00:15 → M2 survived 23:00:21 → M2 kill 23:00:41 → M3 23:00:47 (+08) дарааллаар үүссэн.
 
 Мутаци турших үед `DataFlowTargets.java`-г шууд өөрчилж, туршилт бүрийн дараа `git restore` хийсэн. Эцсийн `src/main` нь Starter commit-тэй ижил.
 
 ## Хэрэглэсэн тусламж
 
-AI туслахыг зааврын дагуу энэ ажлын хүрээнд код, тест, DU хосын анализ болон тайлан боловсруулахад ашиглав. Бүх тест, гаралтын файлыг төслийн орчинд ажиллуулж шалгасан.
+Codex AI-г `GcdTest`, `BonusTest` болон оролтын жишээнүүдийг боловсруулахад, DU/kill хүснэгтийг гаргахад, Graphviz CFG болон README-ийн эхний хувилбарыг бэлтгэхэд ашиглав. Би хүснэгтийг эх кодын мөр ба тестийн замтай тулгаж, мутац бүрийг Maven-аар шалгаж, VS Code-ийн Red Hat Java extension-д багтсан JDT compiler-ийн M3 анхааруулгыг хадгалж, шинэ GitHub clone дээр `mvn verify`-г давтан ажиллуулсан.
 
 ## Дүгнэлт
 
