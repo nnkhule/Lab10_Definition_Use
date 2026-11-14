@@ -45,13 +45,70 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 ### B4. Эхний шат — all-defs
 
-`BonusTest.allDefsResetAndNoBonus` болон `BonusTest.allDefsPresentAndStreakBonus` хоёр тест бүх definition-ийг дор хаяж нэг хэрэглээнд хүргэнэ. Хоёр тестээс цөөн байж болохгүй: 50-р мөрийн `score = 0` тодорхойлолт хэрэглэгдэхийн тулд 51-р мөрийн нөхцөл худал байх ёстой; 51-р мөрийн `score = 5` тодорхойлолтыг үүсгэхийн тулд мөн нөхцөл үнэн байх ёстой. Нэг гүйцэтгэлд энэ нөхцөл хоёр өөр утгатай байх боломжгүй. Эхний тест 46-р мөрийн `streak = 0` тодорхойлолтыг дараагийн эерэг ирцийн мөчлөгийн 42-р мөрийн нөхцөлд хүргэнэ. Хоёр дахь тест 43-р мөрийн `best` тодорхойлолт, 53-р мөрийн `score` тодорхойлолтуудыг use-д хүргэнэ.
+`BonusTest.allDefsResetAndNoBonus` болон `BonusTest.allDefsPresentAndStreakBonus` хоёр тест бүх definition-ийг дор хаяж нэг хэрэглээнд хүргэнэ. Хоёр тестээс цөөн байж болохгүй: 49-р мөрийн `score = 0` тодорхойлолт хэрэглэгдэхийн тулд 50-р мөрийн нөхцөл худал байх ёстой; 51-р мөрийн `score = 5` тодорхойлолтыг үүсгэхийн тулд мөн нөхцөл үнэн байх ёстой. Нэг гүйцэтгэлд энэ нөхцөл хоёр өөр утгатай байх боломжгүй. Эхний тест 46-р мөрийн `streak = 0` тодорхойлолтыг дараагийн эерэг ирцийн мөчлөгийн 41-р мөрийн c-use-д хүргэнэ. Хоёр дахь тест 43-р мөрийн `best` тодорхойлолт, 54-р мөрийн `score` тодорхойлолтуудыг use-д хүргэнэ.
 
-`results/mvn-verify-alldefs.txt`-д нийт 5 тест амжилттай (GCD 3, bonus all-defs 2) гарсан. `results/jacoco-alldefs.csv` дахь `DataFlowTargets` мөр: Branch 14/16, Line 23/25 (1 далд constructor болон 1 оролтын алдааны мөр хамрагдаагүй). Иймд all-defs хангагдсан ч branch 100% биш байж болно.
+`results/mvn-verify-alldefs.txt`-д нийт 5 тест амжилттай (GCD 3, bonus all-defs 2) гарсан. `results/jacoco-alldefs.csv` дахь `DataFlowTargets` мөр: Branch 14/16, Line 23/25 (7-р мөрийн далд constructor болон 33-р мөрийн exception statement хамрагдаагүй). Иймд all-defs хангагдсан ч branch 100% биш байж болно.
 
-### B1–B3. CFG ба бүрэн DU шинжилгээ
+### B1. Control-flow graph
 
-Хийгдэж байна.
+![bonus()-ийн мөрийн дугаартай CFG; ирмэгт бодит тестийн методын нэрүүд байна](cfg-bonus.png)
+
+38-р мөрийн for-each нөхцөл нь `attendance`-ийн p-use: дараагийн элемент байвал 38-р мөрд `a` хувьсагчид онооно, үгүй бол давталтаас гарна. Графын ирмэг дээр тухайн шилжилтийг гаргасан бодит тестийн методыг бичсэн.
+
+### B2. Definition/use жагсаалт
+
+| Хувьсагч | Def мөр | Use мөр ба төрөл |
+|---|---|---|
+| `attendance` | 31 (параметр) | 32 p-use (`attendance == null`); 38 p-use (дараагийн элемент байгаа эсэх) |
+| `threshold` | 31 (параметр) | 32 p-use (`threshold < 0`, эхний нөхцөл худал үед); 50 p-use (`present >= threshold`) |
+| `present` | 35, 40 | 40 c-use (өөрийн баруун тал); 50 p-use |
+| `streak` | 36, 41, 46 | 41 c-use (өөрийн баруун тал); 42 p-use |
+| `best` | 37, 43 | 42 p-use; 53 p-use |
+| `a` | 38 (for-each-ийн оноолт) | 39 p-use (`a > 0`) |
+| `score` | 49, 51, 54 | 54 c-use (өөрийн баруун тал); 56 c-use |
+
+### B3. Def-clear DU хосууд
+
+Замын тэмдэглэгээнд зөвхөн DU-д хамаарах мөрүүдийг харуулав; `38-T` нь дараагийн ирцийн элемент байгаа, `38-F` нь давталт дууссаныг илтгэнэ. Мөр 32-ын `attendance` болон `threshold` p-use нь short-circuit нөхцөл тул тусдаа хувьсагчийн шалгалтыг ялгаж тэмдэглэв.
+
+| Хувьсагч | Def | Use | Төрөл/салаа | Def-clear зам | Тестийн ID |
+|---|---:|---:|---|---|---|
+| attendance | 31 | 32 | p-use, null=T | `31 → 32-T` | `duNullAttendance` |
+| attendance | 31 | 32 | p-use, null=F | `31 → 32-F` | `allDefsResetAndNoBonus` |
+| attendance | 31 | 38 | p-use, T | `31 → 32-F → 35 → 38-T` | `allDefsResetAndNoBonus` |
+| attendance | 31 | 38 | p-use, F | `31 → 32-F → 35 → 38-F` | `duEmptyArrayThresholdZero` |
+| threshold | 31 | 32 | p-use, `<0`=T | `31 → 32` (attendance null биш) | `duNegativeThreshold` |
+| threshold | 31 | 32 | p-use, `<0`=F | `31 → 32-F` | `allDefsResetAndNoBonus` |
+| threshold | 31 | 50 | p-use, T | `31 → 32-F → 35 → 38 → 49 → 50-T` | `duEmptyArrayThresholdZero`, `duResetThenFiveAndThresholdMet` |
+| threshold | 31 | 50 | p-use, F | `31 → 32-F → 35 → 38 → 49 → 50-F` | `allDefsResetAndNoBonus`, `duShortResetAndUnderThreshold` |
+| present | 35 | 40 | c-use | `35 → 38-T → 39-T → 40` | `allDefsResetAndNoBonus` |
+| present | 35 | 50 | p-use, T | `35 → 38-F → 49 → 50-T` | `duEmptyArrayThresholdZero` |
+| present | 35 | 50 | p-use, F | `35 → 38-F → 49 → 50-F` | `allDefsResetAndNoBonus` |
+| present | 40 | 40 | c-use | `40 → 38-T → 39-T → 40` | `allDefsPresentAndStreakBonus` |
+| present | 40 | 50 | p-use, T | `40 → 38-F → 49 → 50-T` | `duResetThenFiveAndThresholdMet` |
+| present | 40 | 50 | p-use, F | `40 → 38-F → 49 → 50-F` | `duShortResetAndUnderThreshold` |
+| streak | 36 | 41 | c-use | `36 → 38-T → 39-T → 41` | `allDefsPresentAndStreakBonus` |
+| streak | 41 | 41 | c-use | `41 → 42 → 38-T → 39-T → 41` | `allDefsPresentAndStreakBonus` |
+| streak | 41 | 42 | p-use, T | `41 → 42-T` | `allDefsPresentAndStreakBonus` |
+| streak | 41 | 42 | p-use, F | `41 → 42-F` (шинэ streak өмнөх best-ээс их биш) | `allDefsResetAndNoBonus` |
+| streak | 46 | 41 | c-use | `46 → 38-T → 39-T → 41` | `duShortResetAndUnderThreshold` |
+| best | 37 | 42 | p-use, T | `37 → 38-T → 39-T → 41 → 42-T` | `allDefsPresentAndStreakBonus` |
+| best | 37 | 53 | p-use, F | `37 → 38-F → 49 → 50 → 53-F` | `duEmptyArrayThresholdZero` |
+| best | 43 | 42 | p-use, T | `43 → 38-T → 39-T → 41 → 42-T` | `duResetThenFiveAndThresholdMet` |
+| best | 43 | 42 | p-use, F | `43 → 38-T → 39-T → 41 → 42-F` | `duResetThenFiveAndThresholdMet` |
+| best | 43 | 53 | p-use, T | `43 → 38-F → 49 → 50 → 53-T` | `duResetThenFiveAndThresholdMet` |
+| best | 43 | 53 | p-use, F | `43 → 38-F → 49 → 50 → 53-F` | `allDefsResetAndNoBonus` |
+| a | 38 | 39 | p-use, T | `38-T → 39-T` | `allDefsPresentAndStreakBonus` |
+| a | 38 | 39 | p-use, F | `38-T → 39-F` | `duShortResetAndUnderThreshold` |
+| score | 49 | 54 | c-use | `49 → 50-F → 53-T → 54` | `duLongStreakUnderThreshold` |
+| score | 49 | 56 | c-use | `49 → 50-F → 53-F → 56` | `allDefsResetAndNoBonus` |
+| score | 51 | 54 | c-use | `51 → 53-T → 54` | `allDefsPresentAndStreakBonus` |
+| score | 51 | 56 | c-use | `51 → 53-F → 56` | `duEmptyArrayThresholdZero` |
+| score | 54 | 56 | c-use | `54 → 56` | `allDefsPresentAndStreakBonus` |
+
+46-р мөрийн `streak = 0` нь өмнөх 41-р мөрийн `streak` тодорхойлолтыг kill хийнэ. 41-р мөрийн дараагийн тодорхойлолт мөн өмнөх `streak`-ийг kill хийнэ; 46-р мөрийн дараа дараагийн эерэг өдөр ирвэл 41-р мөрийн баруун талын c-use-д хүрэхээс өмнө өөрчлөгдөхгүй. 40-р мөрийн дараагийн `present = present + 1` өмнөх `present`-ийг, 43-р мөрийн `best = streak` өмнөх `best`-ийг, 51 ба 54-р мөрүүд өмнөх `score`-ийг kill хийнэ.
+
+Биелэшгүй хосууд: 37-р мөрийн `best=0`-оос 42-р мөрийн худал салаа руу def-clear зам байхгүй, учир нь эхний эерэг өдөр `streak`-ийг 1 болгоод 42-р мөр үнэн болж 43-р мөрөөр `best`-ийг шинэчилнэ. Мөн 37-р мөрийн `best`-ээс 53-р мөрийн үнэн салаа хүрэх боломжгүй: эерэг өдөр байвал 43-р мөрд kill хийгдэнэ, эерэг өдөр огт байхгүй бол best=0 хэвээр үлдэж салаа худал байна. 46-р мөрийн `streak=0`-оос 42-р мөрийн аль ч салаанд хүрэх def-clear зам байхгүй: 42-р мөр хүрэхийн тулд эерэг өдөр хэрэгтэй бөгөөд тэр үед 41-р мөр түрүүлж streak-ийг дахин тодорхойлно. 46-р мөрийн def-ээс 41-р мөрийн c-use хүртэлх хос харин биелэх боломжтой.
 
 ## C. Fault seeding
 

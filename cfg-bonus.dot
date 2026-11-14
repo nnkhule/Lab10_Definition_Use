@@ -1,0 +1,46 @@
+digraph bonus {
+  graph [rankdir=TB, fontname="Arial", fontsize=10, labelloc=t,
+    label="bonus() CFG — line numbers from DataFlowTargets.java"];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=9];
+  edge [fontname="Arial", fontsize=7];
+  entry [label="31: bonus(attendance, threshold)"];
+  valid [label="32: attendance == null || threshold < 0"];
+  err [label="33: throw IllegalArgumentException"];
+  init [label="35: present = 0\n36: streak = 0\n37: best = 0"];
+  loop [label="38: for-each has next attendance element?\nP-use attendance; if yes, assign next element to a (def a)"];
+  pos [label="39: a > 0"];
+  inc [label="40: present = present + 1\n41: streak = streak + 1"];
+  bestq [label="42: streak > best"];
+  bestset [label="43: best = streak"];
+  reset [label="46: streak = 0"];
+  score0 [label="49: score = 0"];
+  presentq [label="50: present >= threshold"];
+  score5 [label="51: score = 5"];
+  best5 [label="53: best >= 5"];
+  score8 [label="54: score = score + 3"];
+  ret [label="56: return score"];
+  end [shape=point, label=""];
+  entry -> valid;
+  valid -> err [label="invalid: duNullAttendance, duNegativeThreshold"];
+  valid -> init [label="valid: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duEmptyArrayThresholdZero, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  err -> end [style=dashed];
+  init -> loop;
+  loop -> pos [label="next: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  loop -> score0 [label="done: duEmptyArrayThresholdZero"];
+  pos -> inc [label="a > 0: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  pos -> reset [label="a == 0: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet"];
+  inc -> bestq;
+  bestq -> bestset [label="true: allDefsPresentAndStreakBonus, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  bestq -> loop [label="false: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet"];
+  bestset -> loop [label="next element: duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  reset -> loop [label="next element: duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet"];
+  loop -> score0 [label="done after loop: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  score0 -> presentq;
+  presentq -> score5 [label="true: allDefsPresentAndStreakBonus, duEmptyArrayThresholdZero, duResetThenFiveAndThresholdMet"];
+  presentq -> best5 [label="false: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duLongStreakUnderThreshold"];
+  score5 -> best5;
+  best5 -> score8 [label="true: allDefsPresentAndStreakBonus, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
+  best5 -> ret [label="false: allDefsResetAndNoBonus, duEmptyArrayThresholdZero, duShortResetAndUnderThreshold"];
+  score8 -> ret;
+  ret -> end;
+}
