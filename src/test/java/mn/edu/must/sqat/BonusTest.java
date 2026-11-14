@@ -55,4 +55,10 @@ class BonusTest {
     void duLongStreakUnderThreshold() {
         assertEquals(3, DataFlowTargets.bonus(new int[]{1, 1, 1, 1, 1}, 6));
     }
+
+    @Test
+    @DisplayName("m2Kill_presentIsNotBest: lines 43, 50-T, 53-F")
+    void m2KillPresentIsNotBest() {
+        assertEquals(5, DataFlowTargets.bonus(new int[]{1, 1, 0, 1, 1, 1}, 5));
+    }
 }
