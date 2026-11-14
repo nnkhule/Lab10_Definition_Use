@@ -43,6 +43,14 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 ## B. `bonus(attendance, threshold)`
 
+### B4. Эхний шат — all-defs
+
+`BonusTest.allDefsResetAndNoBonus` болон `BonusTest.allDefsPresentAndStreakBonus` хоёр тест бүх definition-ийг дор хаяж нэг хэрэглээнд хүргэнэ. Хоёр тестээс цөөн байж болохгүй: 50-р мөрийн `score = 0` тодорхойлолт хэрэглэгдэхийн тулд 51-р мөрийн нөхцөл худал байх ёстой; 51-р мөрийн `score = 5` тодорхойлолтыг үүсгэхийн тулд мөн нөхцөл үнэн байх ёстой. Нэг гүйцэтгэлд энэ нөхцөл хоёр өөр утгатай байх боломжгүй. Эхний тест 46-р мөрийн `streak = 0` тодорхойлолтыг дараагийн эерэг ирцийн мөчлөгийн 42-р мөрийн нөхцөлд хүргэнэ. Хоёр дахь тест 43-р мөрийн `best` тодорхойлолт, 53-р мөрийн `score` тодорхойлолтуудыг use-д хүргэнэ.
+
+`results/mvn-verify-alldefs.txt`-д нийт 5 тест амжилттай (GCD 3, bonus all-defs 2) гарсан. `results/jacoco-alldefs.csv` дахь `DataFlowTargets` мөр: Branch 14/16, Line 23/25 (1 далд constructor болон 1 оролтын алдааны мөр хамрагдаагүй). Иймд all-defs хангагдсан ч branch 100% биш байж болно.
+
+### B1–B3. CFG ба бүрэн DU шинжилгээ
+
 Хийгдэж байна.
 
 ## C. Fault seeding
