@@ -27,9 +27,9 @@
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running mn.edu.must.sqat.BonusTest
-[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.115 s -- in mn.edu.must.sqat.BonusTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.116 s -- in mn.edu.must.sqat.BonusTest
 [INFO] Running mn.edu.must.sqat.GcdTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in mn.edu.must.sqat.GcdTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in mn.edu.must.sqat.GcdTest
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -38,6 +38,6 @@
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  3.617 s
-[INFO] Finished at: 2026-11-14T22:47:04+08:00
+[INFO] Total time:  3.535 s
+[INFO] Finished at: 2026-11-14T23:00:21+08:00
 [INFO] ------------------------------------------------------------------------

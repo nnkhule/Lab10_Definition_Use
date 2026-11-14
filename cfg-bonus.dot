@@ -1,8 +1,8 @@
 digraph bonus {
-  graph [rankdir=TB, fontname="Arial", fontsize=10, labelloc=t,
+  graph [rankdir=TB, fontname="Arial", fontsize=14, labelloc=t,
     label="bonus() CFG — line numbers from DataFlowTargets.java"];
-  node [shape=box, style="rounded", fontname="Arial", fontsize=9];
-  edge [fontname="Arial", fontsize=7];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=13];
+  edge [fontname="Arial", fontsize=10];
   entry [label="31: bonus(attendance, threshold)"];
   valid [label="32: attendance == null || threshold < 0"];
   err [label="33: throw IllegalArgumentException"];
@@ -21,26 +21,26 @@ digraph bonus {
   ret [label="56: return score"];
   end [shape=point, label=""];
   entry -> valid;
-  valid -> err [label="invalid: duNullAttendance, duNegativeThreshold"];
-  valid -> init [label="valid: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duEmptyArrayThresholdZero, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
+  valid -> err [label="invalid: nullAttendance, negativeThreshold"];
+  valid -> init [label="valid: resetNoBonus, presentStreakBonus, emptyArrayZeroThreshold, shortResetUnderThreshold, resetThenFive, longStreakUnderThreshold, m2KillCase"];
   err -> end [style=dashed];
   init -> loop;
-  loop -> pos [label="next: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
-  loop -> score0 [label="done: duEmptyArrayThresholdZero"];
-  pos -> inc [label="a > 0: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
-  pos -> reset [label="a == 0: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, m2KillPresentIsNotBest"];
+  loop -> pos [label="next: resetNoBonus, presentStreakBonus, shortResetUnderThreshold, resetThenFive, longStreakUnderThreshold, m2KillCase"];
+  loop -> score0 [label="done: emptyArrayZeroThreshold"];
+  pos -> inc [label="a > 0: resetNoBonus, presentStreakBonus, shortResetUnderThreshold, resetThenFive, longStreakUnderThreshold, m2KillCase"];
+  pos -> reset [label="a == 0: resetNoBonus, shortResetUnderThreshold, resetThenFive, m2KillCase"];
   inc -> bestq;
-  bestq -> bestset [label="true: allDefsPresentAndStreakBonus, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
-  bestq -> loop [label="false: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, m2KillPresentIsNotBest"];
-  bestset -> loop [label="next element: duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
-  reset -> loop [label="next element: duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, m2KillPresentIsNotBest"];
-  loop -> score0 [label="done after loop: allDefsResetAndNoBonus, allDefsPresentAndStreakBonus, duShortResetAndUnderThreshold, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold, m2KillPresentIsNotBest"];
+  bestq -> bestset [label="true: presentStreakBonus, resetThenFive, longStreakUnderThreshold, m2KillCase"];
+  bestq -> loop [label="false: resetNoBonus, shortResetUnderThreshold, resetThenFive, m2KillCase"];
+  bestset -> loop [label="next element: resetThenFive, longStreakUnderThreshold, m2KillCase"];
+  reset -> loop [label="next element: shortResetUnderThreshold, resetThenFive, m2KillCase"];
+  loop -> score0 [label="done after loop: resetNoBonus, presentStreakBonus, shortResetUnderThreshold, resetThenFive, longStreakUnderThreshold, m2KillCase"];
   score0 -> presentq;
-  presentq -> score5 [label="true: allDefsPresentAndStreakBonus, duEmptyArrayThresholdZero, duResetThenFiveAndThresholdMet, m2KillPresentIsNotBest"];
-  presentq -> best5 [label="false: allDefsResetAndNoBonus, duShortResetAndUnderThreshold, duLongStreakUnderThreshold"];
+  presentq -> score5 [label="true: presentStreakBonus, emptyArrayZeroThreshold, resetThenFive, m2KillCase"];
+  presentq -> best5 [label="false: resetNoBonus, shortResetUnderThreshold, longStreakUnderThreshold"];
   score5 -> best5;
-  best5 -> score8 [label="true: allDefsPresentAndStreakBonus, duResetThenFiveAndThresholdMet, duLongStreakUnderThreshold"];
-  best5 -> ret [label="false: allDefsResetAndNoBonus, duEmptyArrayThresholdZero, duShortResetAndUnderThreshold, m2KillPresentIsNotBest"];
+  best5 -> score8 [label="true: presentStreakBonus, resetThenFive, longStreakUnderThreshold"];
+  best5 -> ret [label="false: resetNoBonus, emptyArrayZeroThreshold, shortResetUnderThreshold, m2KillCase"];
   score8 -> ret;
   ret -> end;
 }

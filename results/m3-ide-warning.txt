@@ -1,0 +1,10 @@
+Analyzer: Red Hat Java extension bundled with this VS Code installation (Eclipse JDT compiler).
+Check: JDT batch compiler from the installed VS Code Red Hat Java extension, with -warn:+unusedLocal, on the temporary M3-mutated DataFlowTargets.java.
+Origin: results/m3-ide-warning.txt captured during the M3 mutation.
+----------
+1. WARNING in C:\Users\HP\AppData\Local\Temp\Lab10_M3_JDT_diagnostic\DataFlowTargets.java (at line 49)
+	int total = present + best;
+	    ^^^^^
+The value of the local variable total is not used
+----------
+1 problem (1 warning)
