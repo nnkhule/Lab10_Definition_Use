@@ -49,6 +49,8 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 `results/mvn-verify-alldefs.txt`-д нийт 5 тест амжилттай (GCD 3, bonus all-defs 2) гарсан. `results/jacoco-alldefs.csv` дахь `DataFlowTargets` мөр: Branch 14/16, Line 23/25 (7-р мөрийн далд constructor болон 33-р мөрийн exception statement хамрагдаагүй). Иймд all-defs хангагдсан ч branch 100% биш байж болно.
 
+Бүрэн DU тестийн шатанд `results/mvn-verify-final.txt` нийт 12 тест амжилттай, `results/jacoco-final.csv` Branch 16/16, Line 24/25 гэж харуулна. Branch 100% нь DU хамралтыг батлахгүй: `gcd(7,0)` болон `gcd(0,5)` нь `while (y != 0)`-ийн T, F салбар хоёуланг хамруулна, гэхдээ олон давталтын `x`-ийн 17-р мөрөөс 16-р мөр рүү болон `y`-ийн 18-р мөрөөс 16/17-р мөрийн use-д хүрэх DU хосуудыг хамруулахгүй. `gcd(12,8)` шиг олон давталттай тест тэдгээрийг шаарддаг. Иймээс branch тоо шийдвэр бүрийн салаа гүйцэтгэснийг хэлдэг бол DU хүснэгт тодорхой definition-ээс use хүртэлх def-clear замыг шалгана.
+
 ### B1. Control-flow graph
 
 ![bonus()-ийн мөрийн дугаартай CFG; ирмэгт бодит тестийн методын нэрүүд байна](cfg-bonus.png)
@@ -112,8 +114,18 @@ OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
 
 ## C. Fault seeding
 
-Хийгдэж байна.
+| № | Мутаци | Үр дүн | Унасан тест / гаралтын мөр |
+|---|---|---|---|
+| M1 | 41-р мөрийн `streak = streak + 1`-ийг устгав (missing update) | 12 тестээс 3 унасан | `allDefsPresentAndStreakBonus`: expected `<8>` but was `<5>`; `duLongStreakUnderThreshold`: expected `<3>` but was `<0>`; `duResetThenFiveAndThresholdMet`: expected `<8>` but was `<5>` (`results/mvn-test-M1.txt`) |
+| M2 | 43-р мөрийн `best = streak`-ийг `best = present` болгосон (wrong variable) | Эхний all-DU-pairs 11 тест амжилттай, M2 амьд үлдсэн (`results/mvn-test-M2.txt`) | Дараа нь `m2KillPresentIsNotBest` тест нэмэв. `attendance=[1,1,0,1,1,1]`, `threshold=5` үед зөв `best=3`, оноо 5; мутацитай код `present=5`-ыг best гэж буруу авч оноо 8 болгоно. Ингэснээр уг тест expected `<5>` but was `<8>` гэж унаж, зөвхөн нийт хос бүрийн оршин байгааг шалгах нь алдаатай хувьсагчийн утгыг заавал ялгахгүйг харуулав (`results/mvn-test-M2-kill.txt`). |
+| M3 | Давталтын дараа ашиглагддаггүй `int total = present + best;` нэмсэн (dead definition) | 12 тест амжилттай, тест илрүүлээгүй (`results/mvn-test-M3.txt`) | `javac` ашиглагдаагүй local variable-д анхааруулга гаргасангүй. Eclipse JDT-д суурилсан IDE-ийн unused-local diagnostic-ийн текст: `The value of the local variable total is not used`. Энэ төрлийн анхааруулгыг VS Code Java language server-ийн статик анализ гаргах ёстой; энэ нь runtime тестийн зорилго биш. |
+
+Мутаци турших үед `DataFlowTargets.java`-г шууд өөрчилж, туршилт бүрийн дараа `git restore` хийсэн. Эцсийн `src/main` нь Starter commit-тэй ижил.
 
 ## Хэрэглэсэн тусламж
 
 AI туслахыг зааврын дагуу энэ ажлын хүрээнд код, тест, DU хосын анализ болон тайлан боловсруулахад ашиглав. Бүх тест, гаралтын файлыг төслийн орчинд ажиллуулж шалгасан.
+
+## Дүгнэлт
+
+DU анализ нь зөвхөн салаа гүйцэтгэсэн эсэхийг биш, тодорхой утга оноосон цэгээс тухайн утгыг уншсан цэг хүртэл замд дахин оноолт байхгүй эсэхийг шалгадаг. Тиймээс branch хамралт бүрэн байсан ч олон давталтаар дамжих DU хос дутуу үлдэж болдог. Харин DU шинжилгээний өртөг нь хувьсагч бүрийн def/use, kill болон def-clear замыг гараар тооцож, хүснэгтийг мөрийн дугаартай уялдуулахад оршино. Fault seeding нь DU хүснэгт бүрэн байсан ч бодит өгөгдлийн утгууд тест алдааг илрүүлэхэд чухал гэдгийг харууллаа. M1 энгийн үр дүнгийн тестүүдээр баригдсан; M2-д бүх DU хос хамрагдсан ч тодорхой нэмэлт кейс шаардлагатай байв. M3 нь динамик тест бус IDE-ийн статик анализын зорилтот асуудал юм. Хамгийн их цаг DU хосын бүх def-clear замыг нягталж, хүснэгт болон бодит тесттэй тааруулахад зарцуулагдсан.
